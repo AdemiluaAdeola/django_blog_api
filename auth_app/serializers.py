@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from auth_app.models import User
+from auth_app.models import User, Profile
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -127,3 +127,49 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'change_password',
             'update_profile',
         ]
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+        ]
+
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = [
+#             'id',
+#             'username',
+#             'first_name',
+#             'last_name',
+#             'email',
+#         ]
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model=Profile
+        fields = [
+            'id',
+            'user',
+            'date_of_birth',
+            'bio',
+            'whatsapp',
+            'telegram',
+            'instagram',
+            'twitter',
+        ]
+        read_only_fields = ['user']
+
+    def create(self, validated_data):
+        # Automatically set the user to the logged-in user
+        request = self.context.get('request')
+        if request and hasattr(request, "user"):
+            validated_data['user'] = request.user
+        return super().create(validated_data)
