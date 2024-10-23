@@ -32,3 +32,10 @@ class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BlogDetailSerializer
     permission_classes = [IsAuthorOrAdmin]
 
+class CommentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None, *args, **kwargs):
+        comment = Comment.objects.filter(blog__id = kwargs['pk']).latest
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
