@@ -4,45 +4,31 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from blog_app.models import *
 from blog_app.serializers import *
+from blog_app.permission import IsAuthorOrAdmin
 
 # Create your views here.
-class CategoryView(generics.ListAPIView):
+class CategoryView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
-class BlogCategoryView(APIView):
-    def get(self, request, format=None, **kwargs):
-        blog = Blog.objects.filter(category__id = kwargs["id"])
-        serializer = BlogListSerializer(instance=blog, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class CategoryListView(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class BlogListView(generics.ListAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogListSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
-class BlogCreateView(generics.CreateAPIView):
+class BlogCreateView(generics.ListAPIView):
     queryset = Blog.objects.all()
     serializer_class = AddBlogPostSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class BlogDetailView(APIView):
-    def get(self, request, format=None, **kwargs):
-        blog = Blog.objects.filter(id = kwargs["id"]).first()
-        serializer = BlogPostSerializer(instance=blog)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogDetailSerializer
+    permission_classes = [IsAuthorOrAdmin]
 
-    def post(self, request):
-        serializer = AddCommentSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class CategoryCreateView(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAdminUser]

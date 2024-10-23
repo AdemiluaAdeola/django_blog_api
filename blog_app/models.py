@@ -15,7 +15,7 @@ class Category(models.Model):
 class Blog(models.Model):
     title = models.CharField(max_length=100000)
     author = models.ForeignKey(User, related_name='author', on_delete=models.CASCADE)
-    category = models.ManyToManyField(Category, on_delete=models.DO_NOTHING)
+    category = models.ManyToManyField(Category, related_name='category', on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     snippet = models.TextField()
     body = models.TextField()
@@ -28,7 +28,7 @@ class Blog(models.Model):
         return self.title
 
 class Comment(models.Model):
-    blog = models.ForeignKey(Blog, related_name="comments", on_delete=models.CASCADE)
+    blog = models.ForeignKey(Blog, related_name="blog", on_delete=models.CASCADE)
     name = models.CharField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     body = models.TextField()

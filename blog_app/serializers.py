@@ -33,7 +33,7 @@ class BlogListSerializer(serializers.ModelSerializer):
             "snippet",
         ]
 
-class AddCommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
@@ -44,8 +44,8 @@ class AddCommentSerializer(serializers.ModelSerializer):
         ]
 
 
-class BlogPostSerializer(serializers.ModelSerializer):
-    comments = AddCommentSerializer(read_only=True, many=True)
+class BlogDetailSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Blog
         fields = [
@@ -55,5 +55,4 @@ class BlogPostSerializer(serializers.ModelSerializer):
             "created_at",
             "category",
             "body",
-            "comments",
         ]
