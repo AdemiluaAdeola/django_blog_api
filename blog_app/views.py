@@ -17,19 +17,30 @@ class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class BlogListView(generics.ListAPIView):
+class BlogListView(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogListSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class BlogCreateView(generics.ListAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = AddBlogPostSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return BlogListSerializer
+        
+        elif self.request.method == 'POST':
+            return AddBlogPostSerializer
+        
     def perform_create(self, serializer):
         # Automatically set the author to the current logged-in user
         serializer.save(author=self.request.user)
+
+# class BlogCreateView(generics.ListAPIView):
+#     queryset = Blog.objects.all()
+#     serializer_class = AddBlogPostSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def perform_create(self, serializer):
+#         # Automatically set the author to the current logged-in user
+#         serializer.save(author=self.request.user)
 
 class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.all()
