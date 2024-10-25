@@ -27,6 +27,10 @@ class BlogCreateView(generics.ListAPIView):
     serializer_class = AddBlogPostSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        # Automatically set the author to the current logged-in user
+        serializer.save(author=self.request.user)
+
 class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogDetailSerializer
@@ -36,6 +40,29 @@ class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None, *args, **kwargs):
-        comment = Comment.objects.filter(blog__id = kwargs['pk']).latest
+        try:
+            # Fetch the latest comment for the blog post
+            comment = Comment.objects.filter(blog__id=kwargs['pk']).latest('created_at')
+        except Comment.DoesNotExist:
+            return Response({"detail": "No comments found."}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
+
+    def post(self, request, format=None, *args, **kwargs):
+        # Extract the blog post ID from the URL (kwargs['pk'])
+        blog_id = kwargs['pk']
+
+        # Add the blog ID to the comment data
+        data = request.data.copy()
+        data['blog'] = blog_id
+
+        # Deserialize the incoming data
+        serializer = CommentSerializer(data=data)
+
+        # Validate and save the comment if the data is valid
+        if serializer.is_valid():
+            serializer.save(author=request.user)  # Assuming 'author' is a ForeignKey to the user
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
